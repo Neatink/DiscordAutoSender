@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime,timedelta
 from colorama import Fore,init,Style
 from discord.ext import tasks
 from pathlib import Path
@@ -98,7 +98,8 @@ def changeInterval(last_message):
         if number.isdigit():
             seconds_minutes.append(number)
     try:
-        print(f'{get_datetime()} {Fore.MAGENTA}Next message in {Fore.CYAN}{seconds_minutes[0]}{Fore.MAGENTA} minutes and {Fore.CYAN}{seconds_minutes[1]}{Fore.MAGENTA} seconds')
+        time_predict = datetime.now()+timedelta(minutes=int(seconds_minutes[0]),seconds=int(seconds_minutes[1]))
+        print(f'{get_datetime()} {Fore.MAGENTA}Next message in {Fore.CYAN}{seconds_minutes[0]}{Fore.MAGENTA} minutes and {Fore.CYAN}{seconds_minutes[1]}{Fore.MAGENTA} seconds{Fore.LIGHTBLACK_EX} ({time_predict.strftime('%H:%M:%S')})')
         collects_commands.change_interval(minutes=int(seconds_minutes[0]),seconds=int(seconds_minutes[1]))
     except:
         print(f'{get_datetime()} {Fore.RED}Failed to check interval')
