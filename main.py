@@ -1,5 +1,5 @@
 from datetime import datetime
-from colorama import Fore,init
+from colorama import Fore,init,Style
 from discord.ext import tasks
 import discord
 import os
@@ -11,24 +11,24 @@ init(autoreset=True)
 client = discord.Client()
 
 def get_datetime():
-    return f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]"
+    return f"{Fore.BLACK}{Style.BRIGHT}[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]{Style.RESET_ALL}"
     
 def close_app(message):
-    print(get_datetime() + Fore.RED + message + Fore.RESET)
+    print(Style.RESET_ALL + get_datetime() + Fore.RED + message)
     os.system('pause')
-    exit(1),Fore.RESET
+    exit(1)
     
 @client.event
 async def on_ready():
     os.system('cls')
-    print(f'{get_datetime()} {Fore.MAGENTA}Username: {Fore.CYAN}{client.user.name}')
-    print(f'{get_datetime()} {Fore.MAGENTA}User ID: {Fore.CYAN}{client.user.id}')
+    print(f'{get_datetime()} {Fore.MAGENTA}{Style.BRIGHT}Username: {Style.RESET_ALL}{Fore.CYAN}{client.user.name}')
+    print(f'{get_datetime()} {Fore.MAGENTA}{Style.BRIGHT}User ID: {Style.RESET_ALL}{Fore.CYAN}{client.user.id}')
     if not collects_commands.is_running():
         collects_commands.start()
         
 @tasks.loop(minutes=minutes,seconds=seconds)
 async def collects_commands():
-    channel = client.get_channel(target_channel_id[0])
+    channel = client.get_channel(int(target_channel_id))
     if channel:
         try:
             await channel.send('+collect')
@@ -71,9 +71,9 @@ def changeInterval(last_message):
 
 if __name__ == "__main__":
     try:
-        target_channel_id = int(input(f"{get_datetime()} {Fore.YELLOW}Channel ID: ")),Fore.RESET
+        target_channel_id = int(input(f"{get_datetime()} {Fore.BLUE}{Style.BRIGHT}Channel ID: "))
     except ValueError:
-        close_app("Enter only numbers!")
+        close_app(" Enter only numbers!")
     
     
-    client.run('your-discord-token')
+    client.run('you-discord-token')
