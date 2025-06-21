@@ -1,6 +1,7 @@
 from datetime import datetime
 from colorama import Fore,init,Style
 from discord.ext import tasks
+from pathlib import Path
 import discord
 import os
 
@@ -9,6 +10,18 @@ seconds = 3
 
 init(autoreset=True)
 client = discord.Client()
+
+config_folder_path = Path('configs')
+config_path = f'{config_folder_path}/main.cfg'
+config_folder_path.mkdir(parents=True, exist_ok=True)
+
+with open(config_path, 'w', encoding='utf-8') as danger_text:
+    danger_text.write('---DO NOT SHARE THIS FILE WITH ANYONE AS IT CONTAINS YOUR DISCORD TOKEN WHICH CAN BE USED TO LOG INTO YOUR ACCOUNT!---')
+
+def config_save(text):
+    with open(f'{config_folder_path}/main.cfg', 'r+', encoding='utf-8') as config:
+        config.seek(0, 2)
+        config.write(text)
 
 def get_datetime():
     return f"{Fore.BLACK}{Style.BRIGHT}[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]{Style.RESET_ALL}"
@@ -71,9 +84,14 @@ def changeInterval(last_message):
 
 if __name__ == "__main__":
     try:
+        discord_token = str(input(f"{get_datetime()} {Fore.BLUE}{Style.BRIGHT}Discord token: "))
+        config_save(f"Discord_token : {discord_token}\n")
+    except discord.errors.LoginFailure as error:
+        close_app(" Enter correct discord token!")
+    try:
         target_channel_id = int(input(f"{get_datetime()} {Fore.BLUE}{Style.BRIGHT}Channel ID: "))
+        config_save(f"Target_channel_id : {target_channel_id}\n")
     except ValueError:
         close_app(" Enter only numbers!")
-    
-    
-    client.run('you-discord-token')
+
+    client.run(discord_token)
