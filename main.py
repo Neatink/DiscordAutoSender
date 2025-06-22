@@ -8,6 +8,7 @@ import json
 import os
 
 systemCLS = lambda: os.system('cls')
+getDatetime = lambda: f"{Fore.BLACK}{Style.BRIGHT}[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]{Style.RESET_ALL}"
 
 init(autoreset=True)
 client = discord.Client()
@@ -36,20 +37,17 @@ def config_save(text):
     with open(config_path, 'r+', encoding='utf-8') as config:
         config.seek(0, 2)
         config.write(text)
-
-def get_datetime():
-    return f"{Fore.BLACK}{Style.BRIGHT}[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]{Style.RESET_ALL}"
     
 def close_app(message):
-    print(Style.RESET_ALL + get_datetime() + Fore.RED + message)
+    print(Style.RESET_ALL + getDatetime() + Fore.RED + message)
     os.system('pause')
     exit(1)
     
 @client.event
 async def on_ready():
     systemCLS()
-    print(f'{get_datetime()} {Fore.MAGENTA}{Style.BRIGHT}Username: {Style.RESET_ALL}{Fore.CYAN}{client.user.name}')
-    print(f'{get_datetime()} {Fore.MAGENTA}{Style.BRIGHT}User ID: {Style.RESET_ALL}{Fore.CYAN}{client.user.id}')
+    print(f'{getDatetime()} {Fore.MAGENTA}{Style.BRIGHT}Username: {Style.RESET_ALL}{Fore.CYAN}{client.user.name}')
+    print(f'{getDatetime()} {Fore.MAGENTA}{Style.BRIGHT}User ID: {Style.RESET_ALL}{Fore.CYAN}{client.user.id}')
     if not collects_commands.is_running():
         collects_commands.start()
         
@@ -61,15 +59,15 @@ async def collects_commands():
         channel = client.get_channel(int(target_channel_id))
     except:
         systemCLS()
-        print(f'{get_datetime()} {Fore.RED}Failed to get channel ID')
+        print(f'{getDatetime()} {Fore.RED}Failed to get channel ID')
         enterChannelID()
     if channel:
         try:
             await channel.send('+collect')
-            print(f"{get_datetime()} {Fore.CYAN}'+collect' {Fore.GREEN}send")
+            print(f"{getDatetime()} {Fore.CYAN}'+collect' {Fore.GREEN}send")
             
             await channel.send('+work')
-            print(f"{get_datetime()} {Fore.CYAN}'+work' {Fore.GREEN}send")
+            print(f"{getDatetime()} {Fore.CYAN}'+work' {Fore.GREEN}send")
 
             async for msg in channel.history(limit=1):
                 if msg.author.name != client.user.name:
@@ -85,9 +83,9 @@ async def collects_commands():
             changeInterval(channel_last_message)
 
             await channel.send('+dep all')
-            print(f"{get_datetime()} {Fore.CYAN}'+dep all' {Fore.GREEN}send")
+            print(f"{getDatetime()} {Fore.CYAN}'+dep all' {Fore.GREEN}send")
         except:
-            print(f"{get_datetime()}{Fore.RED} Сan't send a message!{Fore.LIGHTYELLOW_EX}(Try again in 10 seconds...)")
+            print(f"{getDatetime()}{Fore.RED} Сan't send a message!{Fore.LIGHTYELLOW_EX}(Try again in 10 seconds...)")
             collects_commands.change_interval(minutes=0,seconds=10)
             return
     else:
@@ -100,14 +98,14 @@ def changeInterval(last_message):
             seconds_minutes.append(number)
     try:
         time_predict = datetime.now()+timedelta(minutes=int(seconds_minutes[0]),seconds=int(seconds_minutes[1]))
-        print(f'{get_datetime()} {Fore.MAGENTA}Next message in {Fore.CYAN}{seconds_minutes[0]}{Fore.MAGENTA} minutes and {Fore.CYAN}{seconds_minutes[1]}{Fore.MAGENTA} seconds{Fore.LIGHTBLACK_EX} ({time_predict.strftime('%H:%M:%S')})')
+        print(f'{getDatetime()} {Fore.MAGENTA}Next message in {Fore.CYAN}{seconds_minutes[0]}{Fore.MAGENTA} minutes and {Fore.CYAN}{seconds_minutes[1]}{Fore.MAGENTA} seconds{Fore.LIGHTBLACK_EX} ({time_predict.strftime('%H:%M:%S')})')
         collects_commands.change_interval(minutes=int(seconds_minutes[0]),seconds=int(seconds_minutes[1]))
     except:
-        print(f'{get_datetime()} {Fore.RED}Failed to check interval')
+        print(f'{getDatetime()} {Fore.RED}Failed to check interval')
 
 def enterChannelID():
     try:
-        target_channel_id = int(input(f"{get_datetime()} {Fore.BLUE}{Style.BRIGHT}Channel ID: "))
+        target_channel_id = int(input(f"{getDatetime()} {Fore.BLUE}{Style.BRIGHT}Channel ID: "))
         config_save(f"Target_channel_id : {target_channel_id}\n")
         close_app(f" Restart the app!")
     except ValueError:
@@ -120,7 +118,7 @@ if __name__ == "__main__":
         systemCLS()
         standartConfigSettings()
         try:
-            discord_token = str(input(f"{get_datetime()} {Fore.BLUE}{Style.BRIGHT}Discord token: "))
+            discord_token = str(input(f"{getDatetime()} {Fore.BLUE}{Style.BRIGHT}Discord token: "))
             config_save(f"Discord_token : {discord_token}\n")
             enterChannelID()
         except discord.errors.LoginFailure:
