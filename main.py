@@ -1,33 +1,36 @@
 from datetime import datetime,timedelta
+from configparser import ConfigParser
 from colorama import Fore,init,Style
 from discord.ext import tasks
 from pathlib import Path
 import discord
+import json
 import os
+
+systemCLS = lambda: os.system('cls')
 
 init(autoreset=True)
 client = discord.Client()
+config_parser = ConfigParser()
 
 config_folder_path = Path('configs')
 config_path = f'{config_folder_path}/main.cfg'
 
 def standartConfigSettings():
     with open(config_path, 'w', encoding='utf-8') as danger_text:
-        danger_text.write('---DO NOT SHARE THIS FILE WITH ANYONE AS IT CONTAINS YOUR DISCORD TOKEN WHICH CAN BE USED TO LOG INTO YOUR ACCOUNT!---\n')
+        danger_text.write('# DO NOT SHARE THIS FILE WITH ANYONE AS IT CONTAINS YOUR DISCORD TOKEN WHICH CAN BE USED TO LOG INTO YOUR ACCOUNT! #\n')
+        danger_text.write('[Discord]\n')
 
 if not config_folder_path.exists():
     config_folder_path.mkdir(parents=True)
     standartConfigSettings()
 
-def systemCLS():
-    os.system('cls')
-
-def getValueConfig(value):
-    with open(config_path, 'r', encoding='utf-8') as config:
-        lines = config.readlines()
-        for line in lines:
-            if line.find(value) != -1:
-                return(line.strip().split()[2])
+def getValueConfig(section, value):
+    config_parser.read(config_path, encoding='utf-8')
+    try:
+        return json.loads(config_parser.get(section, value))
+    except:
+        return config_parser.get(section, value)
 
 def config_save(text):
     with open(config_path, 'r+', encoding='utf-8') as config:
@@ -53,7 +56,7 @@ async def on_ready():
 @tasks.loop(minutes=0,seconds=5)
 async def collects_commands():
     collects_commands.change_interval(minutes=0,seconds=5)
-    target_channel_id = getValueConfig('Target_channel_id')
+    target_channel_id = getValueConfig('Discord','Target_channel_id')
     try:
         channel = client.get_channel(int(target_channel_id))
     except:
@@ -112,8 +115,8 @@ def enterChannelID():
      
 if __name__ == "__main__":
     try:
-        client.run(getValueConfig('Discord_token'))
-    except TypeError:
+        client.run(getValueConfig('Discord','Discord_token'))
+    except:
         systemCLS()
         standartConfigSettings()
         try:
