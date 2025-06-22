@@ -5,9 +5,6 @@ from pathlib import Path
 import discord
 import os
 
-minutes = 0
-seconds = 3
-
 init(autoreset=True)
 client = discord.Client()
 
@@ -53,8 +50,9 @@ async def on_ready():
     if not collects_commands.is_running():
         collects_commands.start()
         
-@tasks.loop(minutes=minutes,seconds=seconds)
+@tasks.loop(minutes=0,seconds=5)
 async def collects_commands():
+    collects_commands.change_interval(minutes=0,seconds=5)
     target_channel_id = getValueConfig('Target_channel_id')
     try:
         channel = client.get_channel(int(target_channel_id))
@@ -86,7 +84,7 @@ async def collects_commands():
             await channel.send('+dep all')
             print(f"{get_datetime()} {Fore.CYAN}'+dep all' {Fore.GREEN}send")
         except:
-            print(f"{get_datetime()}{Fore.RED} Сan't send a message!{Fore.YELLOW}(Try again in 10 seconds...)")
+            print(f"{get_datetime()}{Fore.RED} Сan't send a message!{Fore.LIGHTYELLOW_EX}(Try again in 10 seconds...)")
             collects_commands.change_interval(minutes=0,seconds=10)
             return
     else:
