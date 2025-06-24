@@ -7,6 +7,8 @@ import discord
 import json
 import os
 
+os.system('title "DiscordAutoSender"')
+
 systemCLS = lambda: os.system('cls')
 getDatetime = lambda: f"{Fore.BLACK}{Style.BRIGHT}[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]{Style.RESET_ALL}"
 
@@ -42,14 +44,32 @@ def close_app(message):
     print(Style.RESET_ALL + getDatetime() + Fore.RED + message)
     os.system('pause')
     exit(1)
+   
+async def getCurrentBalance():
+    channel = client.get_channel(int(getValueConfig('Discord','Target_channel_id')))
+    await channel.send('+bal')    
     
+    channel_history = await getHistoryChannel()
+    
+    if not channel_history:
+        return    
+    
+    if channel_history.embeds:
+        print(getDatetime(),Fore.LIGHTBLUE_EX+'Balance:')
+        for field in channel_history.embeds[0].fields:
+            print(getDatetime(),Fore.LIGHTYELLOW_EX+field.name,Fore.LIGHTGREEN_EX+field.value[27:])
+      
 @client.event
 async def on_ready():
+    textbal = f'{getDatetime()}{Fore.GREEN} -----------------------------------'
     systemCLS()
     print(f'{getDatetime()} {Fore.MAGENTA}{Style.BRIGHT}Username: {Style.RESET_ALL}{Fore.CYAN}{client.user.name}')
     print(f'{getDatetime()} {Fore.MAGENTA}{Style.BRIGHT}User ID: {Style.RESET_ALL}{Fore.CYAN}{client.user.id}')
+    print(textbal)
+    await getCurrentBalance()
+    print(textbal)
     if not collects_commands.is_running():
-        collects_commands.start()
+        collects_commands.start()        
         
 @tasks.loop(minutes=0,seconds=5)
 async def collects_commands():
@@ -68,17 +88,16 @@ async def collects_commands():
             
             await channel.send('+work')
             print(f"{getDatetime()} {Fore.CYAN}'+work' {Fore.GREEN}send")
-
-            async for msg in channel.history(limit=1):
-                if msg.author.name != client.user.name:
-                    channel_last_message = msg
-                else:
-                    return
             
-            if channel_last_message.embeds:
-                channel_last_message = channel_last_message.embeds[0].description
+            channel_history = await getHistoryChannel()
+            
+            if not channel_history:
+                return
+            
+            if channel_history.embeds:
+                channel_last_message = channel_history.embeds[0].description
             else:
-                channel_last_message = channel_last_message.content 
+                channel_last_message = channel_history.content 
             
             changeInterval(channel_last_message)
 
@@ -90,6 +109,14 @@ async def collects_commands():
             return
     else:
         enterChannelID()
+
+async def getHistoryChannel():
+    async for msg in client.get_channel(int(getValueConfig('Discord','Target_channel_id'))).history(limit=1):
+        if msg:
+            if msg.author.name != client.user.name:
+                return msg
+            else:
+                return
 
 def changeInterval(last_message):
     seconds_minutes = []
