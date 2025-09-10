@@ -13,7 +13,7 @@ systemCLS = lambda: os.system('cls')
 getDatetime = lambda: f"{Fore.BLACK}{Style.BRIGHT}[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]{Style.RESET_ALL}"
 
 init(autoreset=True)
-client = discord.Client()
+client = discord.Client(intents=discord.Intents.default())
 config_parser = ConfigParser()
 
 config_folder_path = Path('configs')
