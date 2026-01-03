@@ -7,9 +7,7 @@ import discord
 import json
 import os
 
-os.system('title "DiscordAutoSender"')
-
-systemCLS = lambda: os.system('cls')
+systemCLS = lambda: os.system('clear')
 getDatetime = lambda: f"{Fore.BLACK}{Style.BRIGHT}[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]{Style.RESET_ALL}"
 
 init(autoreset=True)
@@ -42,7 +40,6 @@ def config_save(text):
     
 def close_app(message):
     print(Style.RESET_ALL + getDatetime() + Fore.RED + message)
-    os.system('pause')
     exit(1)
    
 async def getCurrentBalance():
