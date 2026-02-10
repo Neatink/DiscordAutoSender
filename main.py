@@ -6,8 +6,8 @@ from pathlib import Path
 import discord
 import json
 import os
+import asyncio
 
-systemCLS = lambda: os.system('clear')
 getDatetime = lambda: f"{Fore.BLACK}{Style.BRIGHT}[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]{Style.RESET_ALL}"
 
 init(autoreset=True)
@@ -16,6 +16,9 @@ config_parser = ConfigParser()
 
 config_folder_path = Path('configs')
 config_path = f'{config_folder_path}/main.cfg'
+
+collect_timer = datetime.now().timestamp()
+work_timer = datetime.now().timestamp()
 
 def standartConfigSettings():
     with open(config_path, 'w', encoding='utf-8') as danger_text:
@@ -44,12 +47,12 @@ def close_app(message):
    
 async def getCurrentBalance():
     channel = client.get_channel(int(getValueConfig('Discord','Target_channel_id')))
-    await channel.send('+bal')    
+    await channel.send('+bal')
     
     channel_history = await getHistoryChannel()
     
     if not channel_history:
-        return    
+        return
     
     if channel_history.embeds:
         print(getDatetime(),Fore.LIGHTBLUE_EX+'Balance:')
@@ -59,7 +62,6 @@ async def getCurrentBalance():
 @client.event
 async def on_ready():
     textbal = f'{getDatetime()}{Fore.GREEN} -----------------------------------'
-    systemCLS()
     print(f'{getDatetime()} {Fore.MAGENTA}{Style.BRIGHT}Username: {Style.RESET_ALL}{Fore.CYAN}{client.user.name}')
     print(f'{getDatetime()} {Fore.MAGENTA}{Style.BRIGHT}User ID: {Style.RESET_ALL}{Fore.CYAN}{client.user.id}')
     print(textbal)
@@ -68,44 +70,94 @@ async def on_ready():
     if not collects_commands.is_running():
         collects_commands.start()        
         
-@tasks.loop(minutes=0,seconds=5)
+@tasks.loop(hours=0, minutes=0, seconds=5)
 async def collects_commands():
-    collects_commands.change_interval(minutes=0,seconds=5)
+    collects_commands.change_interval(hours=0, minutes=0, seconds=5)
     target_channel_id = getValueConfig('Discord','Target_channel_id')
     try:
         channel = client.get_channel(int(target_channel_id))
     except:
-        systemCLS()
         print(f'{getDatetime()} {Fore.RED}Failed to get channel ID')
         enterChannelID()
     if channel:
         try:
-            await channel.send('+collect')
-            print(f"{getDatetime()} {Fore.CYAN}'+collect' {Fore.GREEN}send")
+            global collect_timer, work_timer
+            current_date = datetime.now().timestamp()
             
-            await channel.send('+work')
-            print(f"{getDatetime()} {Fore.CYAN}'+work' {Fore.GREEN}send")
-            
-            channel_history = await getHistoryChannel()
-            
-            if not channel_history:
-                return
-            
-            if channel_history.embeds:
-                channel_last_message = channel_history.embeds[0].description
-            else:
-                channel_last_message = channel_history.content 
-            
-            changeInterval(channel_last_message)
+            await asyncio.sleep(2)
 
-            await channel.send('+dep all')
-            print(f"{getDatetime()} {Fore.CYAN}'+dep all' {Fore.GREEN}send")
+            while collect_timer is None or collect_timer < current_date:
+                await channel.send('+collect')
+                print(f"{getDatetime()} {Fore.CYAN}'+collect' {Fore.GREEN}send")
+                
+                await asyncio.sleep(3)
+                
+                collect_timer = await getCollectTime(await getLastMessage())
+                
+                if collect_timer is not None and collect_timer >= current_date:
+                    break
+                
+            await asyncio.sleep(3)
+
+            while work_timer is None or work_timer < current_date:
+                await channel.send('+work')
+                print(f"{getDatetime()} {Fore.CYAN}'+work' {Fore.GREEN}send")
+                
+                await asyncio.sleep(3)
+                
+                work_timer = await getWorkTime(await getLastMessage())
+                
+                if work_timer is not None and work_timer >= current_date:
+                    break
+        
+
+            #await channel.send('+dep all')
+            #print(f"{getDatetime()} {Fore.CYAN}'+dep all' {Fore.GREEN}send")
         except:
             print(f"{getDatetime()}{Fore.RED} Сan't send a message!{Fore.LIGHTYELLOW_EX}(Try again in 10 seconds...)")
-            collects_commands.change_interval(minutes=0,seconds=10)
+            collects_commands.change_interval(hours=0, minutes=0, seconds=10)
             return
     else:
         enterChannelID()
+
+async def getLastMessage():
+    channel_history = await getHistoryChannel()
+    
+    if not channel_history:
+        return
+            
+    if channel_history.embeds:
+        channel_last_message = channel_history.embeds[0].description
+    else:
+        channel_last_message = channel_history.content
+        
+    return channel_last_message
+
+async def getCollectTime(last_message):
+    text1 = float(last_message.split("<t:")[1].split(":")[0])
+    current_time = datetime.now()
+    total_seconds = text1 - current_time.timestamp() + 3
+    try:
+        totals = datetime(1, 1, 1) + timedelta(seconds=(total_seconds))
+    except:
+        return None
+    timepredict = current_time + timedelta(seconds=(total_seconds))
+    print(f'{getDatetime()} {Fore.MAGENTA}Collect message in {Fore.CYAN}{totals.hour}{Fore.MAGENTA} hours {Fore.CYAN}{totals.minute}{Fore.MAGENTA} minutes and {Fore.CYAN}{totals.second}{Fore.MAGENTA} seconds{Fore.LIGHTBLACK_EX} ({timepredict.strftime('%H:%M:%S')})')
+    return text1 + 3
+
+async def getWorkTime(last_message):
+    current_time = datetime.now()
+    seconds_minutes = []
+    for number in last_message.split():
+        if number.isdigit():
+            seconds_minutes.append(int(number))
+    try:
+        time_predict = current_time + timedelta(minutes=seconds_minutes[0],seconds=seconds_minutes[1])
+        print(f'{getDatetime()} {Fore.MAGENTA}Work message in {Fore.CYAN}0{Fore.MAGENTA} hours {Fore.CYAN}{seconds_minutes[0]}{Fore.MAGENTA} minutes and {Fore.CYAN}{seconds_minutes[1]}{Fore.MAGENTA} seconds{Fore.LIGHTBLACK_EX} ({time_predict.strftime('%H:%M:%S')})')
+        return (current_time + timedelta(seconds = (0 * 3600 + seconds_minutes[0] * 60 + seconds_minutes[1]))).timestamp()
+    except:
+        print(f'{Fore.RED}Failed to check interval')
+        return None
 
 async def getHistoryChannel():
     async for msg in client.get_channel(int(getValueConfig('Discord','Target_channel_id'))).history(limit=1):
@@ -114,18 +166,6 @@ async def getHistoryChannel():
                 return msg
             else:
                 return
-
-def changeInterval(last_message):
-    seconds_minutes = []
-    for number in last_message.split():
-        if number.isdigit():
-            seconds_minutes.append(number)
-    try:
-        time_predict = datetime.now()+timedelta(minutes=int(seconds_minutes[0]),seconds=int(seconds_minutes[1]))
-        print(f'{getDatetime()} {Fore.MAGENTA}Next message in {Fore.CYAN}{seconds_minutes[0]}{Fore.MAGENTA} minutes and {Fore.CYAN}{seconds_minutes[1]}{Fore.MAGENTA} seconds{Fore.LIGHTBLACK_EX} ({time_predict.strftime('%H:%M:%S')})')
-        collects_commands.change_interval(minutes=int(seconds_minutes[0]),seconds=int(seconds_minutes[1]))
-    except:
-        print(f'{getDatetime()} {Fore.RED}Failed to check interval')
 
 def enterChannelID():
     try:
@@ -139,7 +179,6 @@ if __name__ == "__main__":
     try:
         client.run(getValueConfig('Discord','Discord_token'))
     except:
-        systemCLS()
         standartConfigSettings()
         try:
             discord_token = str(input(f"{getDatetime()} {Fore.BLUE}{Style.BRIGHT}Discord token: "))
