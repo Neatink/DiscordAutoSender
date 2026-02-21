@@ -1,12 +1,15 @@
 from datetime import datetime,timedelta
 from configparser import ConfigParser
 from colorama import Fore,init,Style
+from random import shuffle, randint
 from discord.ext import tasks
 from pathlib import Path
 import discord
+import asyncio
 import json
 import os
-import asyncio
+
+letters = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
 
 getDatetime = lambda: f"{Fore.BLACK}{Style.BRIGHT}[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]{Style.RESET_ALL}"
 
@@ -55,10 +58,16 @@ async def getCurrentBalance():
         return
     
     if channel_history.embeds:
-        print(getDatetime(),Fore.LIGHTBLUE_EX+'Balance:')
+        print(f"{getDatetime()} {Fore.LIGHTBLUE_EX}Balance:")
         for field in channel_history.embeds[0].fields:
-            print(getDatetime(),Fore.LIGHTYELLOW_EX+field.name,Fore.LIGHTGREEN_EX+field.value[27:])
-      
+            print(f"{getDatetime()} {Fore.LIGHTYELLOW_EX} {field.name} {Fore.LIGHTGREEN_EX} {field.value[27:]}")
+
+def getShuffleLetter():
+    shuffle(letters)
+    random_letter = letters[randint(0,25)]
+    print(f"{getDatetime()} {Fore.CYAN}random letter('{random_letter}'){Style.RESET_ALL} {Fore.GREEN}send")
+    return random_letter
+
 @client.event
 async def on_ready():
     textbal = f'{getDatetime()}{Fore.GREEN} -----------------------------------'
@@ -87,6 +96,7 @@ async def collects_commands():
             await asyncio.sleep(2)
 
             while collect_timer is None or collect_timer < current_date:
+                await channel.send(getShuffleLetter())
                 await channel.send('+collect')
                 print(f"{getDatetime()} {Fore.CYAN}'+collect' {Fore.GREEN}send")
                 
@@ -100,6 +110,7 @@ async def collects_commands():
             await asyncio.sleep(3)
 
             while work_timer is None or work_timer < current_date:
+                await channel.send(getShuffleLetter())
                 await channel.send('+work')
                 print(f"{getDatetime()} {Fore.CYAN}'+work' {Fore.GREEN}send")
                 
@@ -114,6 +125,7 @@ async def collects_commands():
             #await channel.send('+dep all')
             #print(f"{getDatetime()} {Fore.CYAN}'+dep all' {Fore.GREEN}send")
         except:
+            print("Error: ",error)
             print(f"{getDatetime()}{Fore.RED} Сan't send a message!{Fore.LIGHTYELLOW_EX}(Try again in 10 seconds...)")
             collects_commands.change_interval(hours=0, minutes=0, seconds=10)
             return
