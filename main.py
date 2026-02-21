@@ -125,7 +125,6 @@ async def collects_commands():
             #await channel.send('+dep all')
             #print(f"{getDatetime()} {Fore.CYAN}'+dep all' {Fore.GREEN}send")
         except:
-            print("Error: ",error)
             print(f"{getDatetime()}{Fore.RED} Сan't send a message!{Fore.LIGHTYELLOW_EX}(Try again in 10 seconds...)")
             collects_commands.change_interval(hours=0, minutes=0, seconds=10)
             return
