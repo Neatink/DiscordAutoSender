@@ -12,10 +12,10 @@
 <h2>🪟 Windows</h2>
 
 <h3><ol>
-  <li>Install python(<a href="https://www.python.org/ftp/python/3.13.11/python-3.13.11-amd64.exe">3.13.11 recomended</a>).</li>
-  <ul><li>When installing, check the box next to `Add python.exe to PATH` on the first installation screen.</li></ul>
-  <li>Install <a href="https://github.com/Neatink/DiscordAutoSender/archive/refs/heads/main.zip">DiscordAutoSender.</a></li>
-  <li>Extract 'DiscordAutoSender-main.zip'.</li>
+  <li>Install python(<a href="https://www.python.org/ftp/python/3.13.11/python-3.13.11-amd64.exe">3.13.11 recomended</a>)</li>
+  <ul><li>When installing, check the box next to `Add python.exe to PATH` on the first installation screen</li></ul>
+  <li>Install <a href="https://github.com/Neatink/DiscordAutoSender/archive/refs/heads/main.zip">DiscordAutoSender</a></li>
+  <li>Extract 'DiscordAutoSender-main.zip'</li>
   <li>Move in folder 'DiscordAutoSender-main'</li>
   <li>Open this folder in CMD(Terminal on Windows 11)</li>
   <li>Creation of virtual environments - 'python -m venv venv'</li>
