@@ -62,11 +62,14 @@ async def getCurrentBalance():
         for field in channel_history.embeds[0].fields:
             print(f"{getDatetime()} {Fore.LIGHTYELLOW_EX} {field.name} {Fore.LIGHTGREEN_EX} {field.value[27:]}")
 
-def getShuffleLetter():
+async def antiSpamWithLetter(channel):
     shuffle(letters)
     random_letter = letters[randint(0,25)]
+    temp_letter = await channel.send(random_letter)
     print(f"{getDatetime()} {Fore.CYAN}random letter('{random_letter}'){Style.RESET_ALL} {Fore.GREEN}send")
-    return random_letter
+    await asyncio.sleep(1)
+    await temp_letter.delete()
+    print(f"{getDatetime()} {Fore.CYAN}random letter('{random_letter}'){Fore.RED} was deleted")
 
 @client.event
 async def on_ready():
@@ -96,7 +99,8 @@ async def collects_commands():
             await asyncio.sleep(2)
 
             while collect_timer is None or collect_timer < current_date:
-                await channel.send(getShuffleLetter())
+                await antiSpamWithLetter(channel)
+                
                 await channel.send('+collect')
                 print(f"{getDatetime()} {Fore.CYAN}'+collect' {Fore.GREEN}send")
                 
@@ -110,7 +114,8 @@ async def collects_commands():
             await asyncio.sleep(3)
 
             while work_timer is None or work_timer < current_date:
-                await channel.send(getShuffleLetter())
+                await antiSpamWithLetter(channel)
+
                 await channel.send('+work')
                 print(f"{getDatetime()} {Fore.CYAN}'+work' {Fore.GREEN}send")
                 
@@ -121,11 +126,8 @@ async def collects_commands():
                 if work_timer is not None and work_timer >= current_date:
                     break
         
-
-            #await channel.send('+dep all')
-            #print(f"{getDatetime()} {Fore.CYAN}'+dep all' {Fore.GREEN}send")
-        except:
-            print(f"{getDatetime()}{Fore.RED} Сan't send a message!{Fore.LIGHTYELLOW_EX}(Try again in 10 seconds...)")
+        except EOFError as error:
+            print(f"{getDatetime()}{Fore.RED} Сant send a message!{Fore.LIGHTYELLOW_EX}(Try again in 10 seconds...){Fore.RED}(Error:{error})")
             collects_commands.change_interval(hours=0, minutes=0, seconds=10)
             return
     else:
@@ -166,8 +168,8 @@ async def getWorkTime(last_message):
         time_predict = current_time + timedelta(minutes=seconds_minutes[0],seconds=seconds_minutes[1])
         print(f'{getDatetime()} {Fore.MAGENTA}Work message in {Fore.CYAN}0{Fore.MAGENTA} hours {Fore.CYAN}{seconds_minutes[0]}{Fore.MAGENTA} minutes and {Fore.CYAN}{seconds_minutes[1]}{Fore.MAGENTA} seconds{Fore.LIGHTBLACK_EX} ({time_predict.strftime('%H:%M:%S')})')
         return (current_time + timedelta(seconds = (0 * 3600 + seconds_minutes[0] * 60 + seconds_minutes[1]))).timestamp()
-    except:
-        print(f'{Fore.RED}Failed to check interval')
+    except EOFError as error:
+        print(f'{getDatetime()} {Fore.RED}Failed to check interval(Error:{error})')
         return None
 
 async def getHistoryChannel():
