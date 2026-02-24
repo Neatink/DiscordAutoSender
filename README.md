@@ -10,7 +10,8 @@
 </h2>
 <h1>⬇️ Installation</h1>
 <h2>🪟 Windows</h2>
-<ol>
+
+<h3><ol>
   <li>Install python(<a href="https://www.python.org/ftp/python/3.13.11/python-3.13.11-amd64.exe">3.13.11 recomended</a>).</li>
   <ul><li>When installing, check the box next to `Add python.exe to PATH` on the first installation screen.</li></ul>
   <li>Install <a href="https://github.com/Neatink/DiscordAutoSender/archive/refs/heads/main.zip">DiscordAutoSender.</a></li>
@@ -22,7 +23,7 @@
   <li>Install requirements - 'pip install -r requirements.txt'</li>
   <li>Start DiscordAutoSender - 'python main.py'</li>
   <ul><li>If You want to open with no CMD - skip 6 and 7 points</li></ul>
-</ol>
+</ol></h3>
 
 <h1>❓ FAQ (Frequently Asked Questions)</h1>
 <h2>
