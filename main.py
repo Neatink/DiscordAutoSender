@@ -126,7 +126,7 @@ async def collects_commands():
                 if work_timer is not None and work_timer >= current_date:
                     break
         
-        except EOFError as error:
+        except Exception as error:
             print(f"{getDatetime()}{Fore.RED} Сant send a message!{Fore.LIGHTYELLOW_EX}(Try again in 10 seconds...){Fore.RED}(Error:{error})")
             collects_commands.change_interval(hours=0, minutes=0, seconds=10)
             return
@@ -136,8 +136,8 @@ async def collects_commands():
 async def getLastMessage():
     channel_history = await getHistoryChannel()
     
-    if not channel_history:
-        return
+    if channel_history is None:
+        return None
             
     if channel_history.embeds:
         channel_last_message = channel_history.embeds[0].description
@@ -147,10 +147,10 @@ async def getLastMessage():
     return channel_last_message
 
 async def getCollectTime(last_message):
-    text1 = float(last_message.split("<t:")[1].split(":")[0])
     current_time = datetime.now()
-    total_seconds = text1 - current_time.timestamp() + 3
     try:
+        text1 = float(last_message.split("<t:")[1].split(":")[0])
+        total_seconds = text1 - current_time.timestamp() + 3
         totals = datetime(1, 1, 1) + timedelta(seconds=(total_seconds))
     except:
         return None
@@ -159,6 +159,9 @@ async def getCollectTime(last_message):
     return text1 + 3
 
 async def getWorkTime(last_message):
+    if last_message is None:
+        return None
+    
     current_time = datetime.now()
     seconds_minutes = []
     for number in last_message.split():
@@ -168,7 +171,7 @@ async def getWorkTime(last_message):
         time_predict = current_time + timedelta(minutes=seconds_minutes[0],seconds=seconds_minutes[1])
         print(f'{getDatetime()} {Fore.MAGENTA}Work message in {Fore.CYAN}0{Fore.MAGENTA} hours {Fore.CYAN}{seconds_minutes[0]}{Fore.MAGENTA} minutes and {Fore.CYAN}{seconds_minutes[1]}{Fore.MAGENTA} seconds{Fore.LIGHTBLACK_EX} ({time_predict.strftime('%H:%M:%S')})')
         return (current_time + timedelta(seconds = (0 * 3600 + seconds_minutes[0] * 60 + seconds_minutes[1]))).timestamp()
-    except EOFError as error:
+    except IndexError as error:
         print(f'{getDatetime()} {Fore.RED}Failed to check interval(Error:{error})')
         return None
 
@@ -178,7 +181,7 @@ async def getHistoryChannel():
             if msg.author.name != client.user.name:
                 return msg
             else:
-                return
+                return None
 
 def enterChannelID():
     try:
