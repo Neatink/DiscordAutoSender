@@ -2,16 +2,20 @@ from datetime import datetime,timedelta
 from configparser import ConfigParser
 from colorama import Fore,init,Style
 from random import shuffle, randint
+from logger import setup_logger
 from discord.ext import tasks
 from pathlib import Path
+import logging
 import discord
 import asyncio
 import json
-import os
+
+setup_logger(__name__)
+logger = logging.getLogger(__name__)
 
 letters = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
 
-getDatetime = lambda: f"{Fore.BLACK}{Style.BRIGHT}[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]{Style.RESET_ALL}"
+getDatetime = lambda: f"{Fore.LIGHTBLACK_EX}[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]{Style.RESET_ALL}"
 
 init(autoreset=True)
 client = discord.Client()
@@ -45,7 +49,7 @@ def config_save(text):
         config.write(text)
     
 def close_app(message):
-    print(Style.RESET_ALL + getDatetime() + Fore.RED + message)
+    logger.warning(message)
     exit(1)
    
 async def getCurrentBalance():
@@ -58,27 +62,27 @@ async def getCurrentBalance():
         return
     
     if channel_history.embeds:
-        print(f"{getDatetime()} {Fore.LIGHTBLUE_EX}Balance:")
+        logger.info("Balance:")
         for field in channel_history.embeds[0].fields:
-            print(f"{getDatetime()} {Fore.LIGHTYELLOW_EX} {field.name} {Fore.LIGHTGREEN_EX} {field.value[27:]}")
+            logger.info(f"{field.name} {field.value[27:]}")
 
 async def antiSpamWithLetter(channel):
     shuffle(letters)
     random_letter = letters[randint(0,25)]
     temp_letter = await channel.send(random_letter)
-    print(f"{getDatetime()} {Fore.CYAN}random letter('{random_letter}'){Style.RESET_ALL} {Fore.GREEN}send")
+    logger.debug(f"random letter('{random_letter}') send")
     await asyncio.sleep(1)
     await temp_letter.delete()
-    print(f"{getDatetime()} {Fore.CYAN}random letter('{random_letter}'){Fore.RED} was deleted")
+    logger.debug(f"random letter('{random_letter}') was deleted")
 
 @client.event
 async def on_ready():
-    textbal = f'{getDatetime()}{Fore.GREEN} -----------------------------------'
-    print(f'{getDatetime()} {Fore.MAGENTA}{Style.BRIGHT}Username: {Style.RESET_ALL}{Fore.CYAN}{client.user.name}')
-    print(f'{getDatetime()} {Fore.MAGENTA}{Style.BRIGHT}User ID: {Style.RESET_ALL}{Fore.CYAN}{client.user.id}')
-    print(textbal)
+    textbal = "-----------------------------------"
+    logger.info(f"Username: {client.user.name}")
+    logger.info(f"User ID: {client.user.id}")
+    logger.debug(textbal)
     await getCurrentBalance()
-    print(textbal)
+    logger.debug(textbal)
     if not collects_commands.is_running():
         collects_commands.start()        
         
@@ -88,8 +92,8 @@ async def collects_commands():
     target_channel_id = getValueConfig('Discord','Target_channel_id')
     try:
         channel = client.get_channel(int(target_channel_id))
-    except:
-        print(f'{getDatetime()} {Fore.RED}Failed to get channel ID')
+    except Exception as error:
+        logger.error(f"Failed to get channel ID(Error:{error})", exc_info=True)
         enterChannelID()
     if channel:
         try:
@@ -102,7 +106,7 @@ async def collects_commands():
                 await antiSpamWithLetter(channel)
                 
                 await channel.send('+collect')
-                print(f"{getDatetime()} {Fore.CYAN}'+collect' {Fore.GREEN}send")
+                logger.debug("'+collect' send")
                 
                 await asyncio.sleep(3)
                 
@@ -117,7 +121,7 @@ async def collects_commands():
                 await antiSpamWithLetter(channel)
 
                 await channel.send('+work')
-                print(f"{getDatetime()} {Fore.CYAN}'+work' {Fore.GREEN}send")
+                logger.debug("'+work' send")
                 
                 await asyncio.sleep(3)
                 
@@ -127,7 +131,7 @@ async def collects_commands():
                     break
         
         except Exception as error:
-            print(f"{getDatetime()}{Fore.RED} Сant send a message!{Fore.LIGHTYELLOW_EX}(Try again in 10 seconds...){Fore.RED}(Error:{error})")
+            logger.error(f"Сant send a message!(Try again in 10 seconds...)(Error:{error})", exc_info=True)
             collects_commands.change_interval(hours=0, minutes=0, seconds=10)
             return
     else:
@@ -155,7 +159,7 @@ async def getCollectTime(last_message):
     except:
         return None
     timepredict = current_time + timedelta(seconds=(total_seconds))
-    print(f'{getDatetime()} {Fore.MAGENTA}Collect message in {Fore.CYAN}{totals.hour}{Fore.MAGENTA} hours {Fore.CYAN}{totals.minute}{Fore.MAGENTA} minutes and {Fore.CYAN}{totals.second}{Fore.MAGENTA} seconds{Fore.LIGHTBLACK_EX} ({timepredict.strftime('%H:%M:%S')})')
+    logger.info(f"Collect message in {totals.hour} hours {totals.minute} minutes and {totals.second} seconds({timepredict.strftime('%H:%M:%S')})")
     return text1 + 3
 
 async def getWorkTime(last_message):
@@ -169,10 +173,10 @@ async def getWorkTime(last_message):
             seconds_minutes.append(int(number))
     try:
         time_predict = current_time + timedelta(minutes=seconds_minutes[0],seconds=seconds_minutes[1])
-        print(f'{getDatetime()} {Fore.MAGENTA}Work message in {Fore.CYAN}0{Fore.MAGENTA} hours {Fore.CYAN}{seconds_minutes[0]}{Fore.MAGENTA} minutes and {Fore.CYAN}{seconds_minutes[1]}{Fore.MAGENTA} seconds{Fore.LIGHTBLACK_EX} ({time_predict.strftime('%H:%M:%S')})')
+        logger.info(f"Work message in 0 hours {seconds_minutes[0]} minutes and {seconds_minutes[1]} seconds({time_predict.strftime('%H:%M:%S')})")
         return (current_time + timedelta(seconds = (0 * 3600 + seconds_minutes[0] * 60 + seconds_minutes[1]))).timestamp()
     except IndexError as error:
-        print(f'{getDatetime()} {Fore.RED}Failed to check interval(Error:{error})')
+        logger.error(f"Failed to check interval(Error:{error})", exc_info=True)
         return None
 
 async def getHistoryChannel():
@@ -187,9 +191,10 @@ def enterChannelID():
     try:
         target_channel_id = int(input(f"{getDatetime()} {Fore.BLUE}{Style.BRIGHT}Channel ID: "))
         config_save(f"Target_channel_id : {target_channel_id}\n")
-        close_app(f" Restart the app!")
+        logger.info("Channel ID saved!")
+        close_app("Restart the app!")
     except ValueError:
-        close_app(" Enter only numbers!")
+        close_app("Enter only numbers!")
      
 if __name__ == "__main__":
     try:
@@ -199,6 +204,7 @@ if __name__ == "__main__":
         try:
             discord_token = str(input(f"{getDatetime()} {Fore.BLUE}{Style.BRIGHT}Discord token: "))
             config_save(f"Discord_token : {discord_token}\n")
+            logger.info("Discord token saved!")
             enterChannelID()
         except discord.errors.LoginFailure:
-            close_app(" Enter correct discord token!")
+            close_app("Enter correct discord token!")
