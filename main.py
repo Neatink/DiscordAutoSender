@@ -1,5 +1,5 @@
+from configparser import ConfigParser, NoSectionError
 from datetime import datetime,timedelta
-from configparser import ConfigParser
 from colorama import Fore,init,Style
 from random import shuffle, randint
 from logger import setup_logger
@@ -8,7 +8,6 @@ from pathlib import Path
 import logging
 import discord
 import asyncio
-import json
 
 setup_logger(__name__)
 logger = logging.getLogger(__name__)
@@ -27,34 +26,47 @@ config_path = f'{config_folder_path}/main.cfg'
 collect_timer = datetime.now().timestamp()
 work_timer = datetime.now().timestamp()
 
-def standartConfigSettings():
-    with open(config_path, 'w', encoding='utf-8') as danger_text:
-        danger_text.write('# DO NOT SHARE THIS FILE WITH ANYONE AS IT CONTAINS YOUR DISCORD TOKEN WHICH CAN BE USED TO LOG INTO YOUR ACCOUNT! #\n')
-        danger_text.write('[Discord]\n')
-
 if not config_folder_path.exists():
     config_folder_path.mkdir(parents=True)
-    standartConfigSettings()
 
-def getValueConfig(section, value):
-    config_parser.read(config_path, encoding='utf-8')
+def createConfigFile():
+    logger.info(f"Creating config file ({config_path})...")
     try:
-        return json.loads(config_parser.get(section, value))
-    except:
-        return config_parser.get(section, value)
+        open(config_path, "x")
+        logger.info("Successfully created config file!")
+        with open(config_path, "w", encoding="utf-8") as section:
+            logger.info("Writing warning text...")
+            config_parser.add_section("# DO NOT SHARE THIS FILE WITH ANYONE AS IT CONTAINS YOUR DISCORD TOKEN WHICH CAN BE USED TO LOG INTO YOUR ACCOUNT! #")
+            logger.info("Successfully wrote warning text!")
+            logger.info("Adding section 'Discord' to config file...")
+            config_parser.add_section("Discord")
+            config_parser.write(section)
+            logger.info("Successfully added section 'Discord' to config file")
+        logger.info(f"Successfully created config file! ({config_path})")
+        while not getDiscordToken():
+            pass
+        while not getChannelID():
+            pass
+    except FileExistsError:
+        config_parser.read(config_path, encoding="utf-8")
+        logger.info(f"Config file exists. Loading! ({config_path})")
 
-def config_save(text):
-    with open(config_path, 'r+', encoding='utf-8') as config:
-        config.seek(0, 2)
-        config.write(text)
-    
-def close_app(message):
-    logger.warning(message)
-    exit(1)
+def config_save(section, target, text):
+    with open(config_path, "w", encoding="utf-8") as config:
+        config_parser.set(section, target, text)
+        config_parser.write(config)
+    logger.info(f"Successfully saved '{target}' in '{section}' section")
    
 async def getCurrentBalance():
-    channel = client.get_channel(int(getValueConfig('Discord','Target_channel_id')))
-    await channel.send('+bal')
+    channel = client.get_channel(int(config_parser.get("Discord","target_channel_id")))
+    try:
+        await channel.send("+bal")
+    except AttributeError as error:
+        logger.error("Your Channel ID is incorrect, please enter new Channel ID")
+        while not getChannelID():
+            pass
+        logger.info("Restart app")
+        exit(1)
     
     channel_history = await getHistoryChannel()
     
@@ -89,7 +101,7 @@ async def on_ready():
 @tasks.loop(hours=0, minutes=0, seconds=5)
 async def collects_commands():
     collects_commands.change_interval(hours=0, minutes=0, seconds=5)
-    target_channel_id = getValueConfig('Discord','Target_channel_id')
+    target_channel_id = config_parser.get("Discord","target_channel_id")
     try:
         channel = client.get_channel(int(target_channel_id))
     except Exception as error:
@@ -180,31 +192,42 @@ async def getWorkTime(last_message):
         return None
 
 async def getHistoryChannel():
-    async for msg in client.get_channel(int(getValueConfig('Discord','Target_channel_id'))).history(limit=1):
+    async for msg in client.get_channel(int(config_parser.get("Discord","target_channel_id"))).history(limit=1):
         if msg:
             if msg.author.name != client.user.name:
                 return msg
             else:
                 return None
 
-def enterChannelID():
+def getChannelID():
     try:
-        target_channel_id = int(input(f"{getDatetime()} {Fore.BLUE}{Style.BRIGHT}Channel ID: "))
-        config_save(f"Target_channel_id : {target_channel_id}\n")
-        logger.info("Channel ID saved!")
-        close_app("Restart the app!")
+        target_channel_id = int(input(f"{getDatetime()} {Fore.BLUE}{Style.BRIGHT}Enter Channel ID: "))
+        config_save("Discord", "target_channel_id", str(target_channel_id))
+        return True
     except ValueError:
-        close_app("Enter only numbers!")
-     
-if __name__ == "__main__":
+        logger.error("Enter only numbers!")
+        return False
+        
+def getDiscordToken():
+    discord_token = input(f"{getDatetime()} {Fore.BLUE}{Style.BRIGHT}Enter Discord Token: ")
+    if not discord_token.strip():
+        logger.error("Discord Token is empty!")
+        return False
+    config_save("Discord", "discord_token", discord_token)
+    return True
+
+def startBot():
+    createConfigFile()
     try:
-        client.run(getValueConfig('Discord','Discord_token'))
-    except:
-        standartConfigSettings()
-        try:
-            discord_token = str(input(f"{getDatetime()} {Fore.BLUE}{Style.BRIGHT}Discord token: "))
-            config_save(f"Discord_token : {discord_token}\n")
-            logger.info("Discord token saved!")
-            enterChannelID()
-        except discord.errors.LoginFailure:
-            close_app("Enter correct discord token!")
+        logging.info("Starting DiscordAutoSender...")
+        client.run(config_parser.get("Discord","discord_token"))
+    except discord.errors.LoginFailure:
+        logger.error("Your Discord Token is unavailable, please enter new Discord Token")
+        while not getDiscordToken():
+            pass
+    except Exception as error:
+        logger.error(f"Error: {error}", exc_info=True)
+
+
+if __name__ == "__main__":
+    startBot()
