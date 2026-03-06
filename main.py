@@ -59,6 +59,7 @@ def config_save(section, target, text):
    
 async def getCurrentBalance():
     channel = client.get_channel(int(config_parser.get("Discord","target_channel_id")))
+    textbal = "-----------------------------------"
     try:
         await channel.send("+bal")
     except AttributeError as error:
@@ -67,6 +68,8 @@ async def getCurrentBalance():
             pass
         logger.info("Restart app")
         exit(1)
+        
+    await asyncio.sleep(1)
     
     channel_history = await getHistoryChannel()
     
@@ -74,9 +77,11 @@ async def getCurrentBalance():
         return
     
     if channel_history.embeds:
+        logger.debug(textbal)
         logger.info("Balance:")
         for field in channel_history.embeds[0].fields:
             logger.info(f"{field.name} {field.value[27:]}")
+        logger.debug(textbal)
 
 async def antiSpamWithLetter(channel):
     shuffle(letters)
@@ -89,12 +94,9 @@ async def antiSpamWithLetter(channel):
 
 @client.event
 async def on_ready():
-    textbal = "-----------------------------------"
     logger.info(f"Username: {client.user.name}")
     logger.info(f"User ID: {client.user.id}")
-    logger.debug(textbal)
     await getCurrentBalance()
-    logger.debug(textbal)
     if not collects_commands.is_running():
         collects_commands.start()        
         
