@@ -113,8 +113,6 @@ async def collects_commands():
         try:
             global collect_timer, work_timer
             current_date = datetime.now().timestamp()
-            
-            await asyncio.sleep(2)
 
             while collect_timer is None or collect_timer < current_date:
                 await antiSpamWithLetter(channel)
@@ -122,14 +120,14 @@ async def collects_commands():
                 await channel.send('+collect')
                 logger.debug("'+collect' send")
                 
-                await asyncio.sleep(3)
+                await asyncio.sleep(1.5)
                 
                 collect_timer = await getCollectTime(await getLastMessage())
                 
                 if collect_timer is not None and collect_timer >= current_date:
                     break
                 
-            await asyncio.sleep(3)
+            await asyncio.sleep(1.5)
 
             while work_timer is None or work_timer < current_date:
                 await antiSpamWithLetter(channel)
@@ -137,7 +135,7 @@ async def collects_commands():
                 await channel.send('+work')
                 logger.debug("'+work' send")
                 
-                await asyncio.sleep(3)
+                await asyncio.sleep(1.5)
                 
                 work_timer = await getWorkTime(await getLastMessage())
                 
