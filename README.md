@@ -21,7 +21,7 @@
   <li>Start virtual environments - 'venv\Scripts\activate.bat'</li>
   <li>Install requirements - 'pip install -r requirements.txt'</li>
   <li>Start DiscordAutoSender - 'python main.py'</li>
-  <ul><li>If You want to open with no CMD - skip 6 and 7 points</li></ul>
+  <ul><li><a href="#%EF%B8%8F-how-to-get-application">If You want to open with no CMD(get application)</a></li></ul>
 </ol></h3>
 
 <h1>🛠️ How to get application</h1>
@@ -39,6 +39,7 @@
   <ul>
     <li><a href="https://www.youtube.com/watch?v=Qr_iR9oZy4c">How to get 'Discord Token'</li>
     <li><a href="https://www.youtube.com/watch?v=rbwvcyEx_Uc">How to get 'Channel Id'</li>
+    <li><a href="#%EF%B8%8F-how-to-get-application">How to get Application</a></li>
   </ul>
 </h2>
 
