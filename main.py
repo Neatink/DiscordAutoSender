@@ -1,13 +1,16 @@
-from configparser import ConfigParser, NoSectionError
+from configparser import ConfigParser, NoOptionError, NoSectionError
 from datetime import datetime,timedelta
 from colorama import Fore,init,Style
 from random import shuffle, randint
 from logger import setup_logger
 from discord.ext import tasks
 from pathlib import Path
+import platform
 import logging
 import discord
 import asyncio
+import sys
+import os
 
 setup_logger(__name__)
 logger = logging.getLogger(__name__)
@@ -15,6 +18,8 @@ logger = logging.getLogger(__name__)
 letters = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
 
 getDatetime = lambda: f"{Fore.LIGHTBLACK_EX}[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]{Style.RESET_ALL}"
+
+sections = ["# DO NOT SHARE THIS FILE WITH ANYONE AS IT CONTAINS YOUR DISCORD TOKEN WHICH CAN BE USED TO LOG INTO YOUR ACCOUNT! #", "Discord", "OS"]
 
 init(autoreset=True)
 client = discord.Client()
@@ -29,45 +34,55 @@ work_timer = datetime.now().timestamp()
 if not config_folder_path.exists():
     config_folder_path.mkdir(parents=True)
 
+def restartBot():
+    logger.info("Restarting bot...")
+    os.execv(sys.executable, ['python'] + sys.argv)
+
+def checkSections(sections):
+    added_new_sections = False
+    for section in sections:
+        if not config_parser.has_section(section):
+            logger.info(f"Adding section '{section}' to config file({config_path})")
+            config_parser.add_section(section)
+            added_new_sections = True
+            logger.info(f"Successfully added section '{section}' to config file({config_path})")
+    if added_new_sections:
+        with open(config_path, "w", encoding="utf-8") as config:
+            config_parser.write(config)
+
 def createConfigFile():
     logger.info(f"Creating config file ({config_path})...")
     try:
         open(config_path, "x")
-        logger.info("Successfully created config file!")
-        with open(config_path, "w", encoding="utf-8") as section:
-            logger.info("Writing warning text...")
-            config_parser.add_section("# DO NOT SHARE THIS FILE WITH ANYONE AS IT CONTAINS YOUR DISCORD TOKEN WHICH CAN BE USED TO LOG INTO YOUR ACCOUNT! #")
-            logger.info("Successfully wrote warning text!")
-            logger.info("Adding section 'Discord' to config file...")
-            config_parser.add_section("Discord")
-            config_parser.write(section)
-            logger.info("Successfully added section 'Discord' to config file")
-        logger.info(f"Successfully created config file! ({config_path})")
-        while not getDiscordToken():
-            pass
-        while not getChannelID():
-            pass
+        checkSections(sections)
+        logger.info(f"Successfully created config file ({config_path})")
+        getDiscordToken()
+        getChannelID()
     except FileExistsError:
         config_parser.read(config_path, encoding="utf-8")
-        logger.info(f"Config file exists. Loading! ({config_path})")
+        logger.info(f"Config file exists. Loading({config_path})...")
 
 def config_save(section, target, text):
     with open(config_path, "w", encoding="utf-8") as config:
         config_parser.set(section, target, text)
         config_parser.write(config)
     logger.info(f"Successfully saved '{target}' in '{section}' section")
-   
+
 async def getCurrentBalance():
-    channel = client.get_channel(int(config_parser.get("Discord","target_channel_id")))
-    textbal = "-----------------------------------"
+    textbal = '-' * 35
     try:
+        logger.info("Getting Channel ID...")
+        channel = client.get_channel(int(config_parser.get("Discord","target_channel_id")))
+        logger.info("Successfully got Channel ID")
         await channel.send("+bal")
-    except AttributeError as error:
-        logger.error("Your Channel ID is incorrect, please enter new Channel ID")
-        while not getChannelID():
-            pass
-        logger.info("Restart app")
-        exit(1)
+        logger.info("'+bal' send")
+    except (ValueError, AttributeError):
+        logger.error("Your Channel ID is unavailable, please enter new Channel ID")
+        getChannelID()
+    except NoOptionError:
+        logger.error("Failed to get option 'Channel ID'")
+        getChannelID()
+        
         
     await asyncio.sleep(1)
     
@@ -98,23 +113,23 @@ async def on_ready():
     logger.info(f"User ID: {client.user.id}")
     await getCurrentBalance()
     if not collects_commands.is_running():
-        collects_commands.start()        
-        
+        collects_commands.start()  
+
 @tasks.loop(hours=0, minutes=0, seconds=5)
 async def collects_commands():
+    global collect_timer, work_timer
     collects_commands.change_interval(hours=0, minutes=0, seconds=5)
     target_channel_id = config_parser.get("Discord","target_channel_id")
     try:
         channel = client.get_channel(int(target_channel_id))
     except Exception as error:
-        logger.error(f"Failed to get channel ID(Error:{error})", exc_info=True)
+        logger.error(f"Failed to get channel ID!")
         enterChannelID()
     if channel:
         try:
-            global collect_timer, work_timer
             current_date = datetime.now().timestamp()
 
-            while collect_timer is None or collect_timer < current_date:
+            while not collect_timer or collect_timer < current_date:
                 await antiSpamWithLetter(channel)
                 
                 await channel.send('+collect')
@@ -129,7 +144,7 @@ async def collects_commands():
                 
             await asyncio.sleep(1.5)
 
-            while work_timer is None or work_timer < current_date:
+            while not work_timer or work_timer < current_date:
                 await antiSpamWithLetter(channel)
 
                 await channel.send('+work')
@@ -152,7 +167,7 @@ async def collects_commands():
 async def getLastMessage():
     channel_history = await getHistoryChannel()
     
-    if channel_history is None:
+    if not channel_history:
         return None
             
     if channel_history.embeds:
@@ -175,9 +190,8 @@ async def getCollectTime(last_message):
     return text1 + 3
 
 async def getWorkTime(last_message):
-    if last_message is None:
+    if not last_message:
         return None
-    
     current_time = datetime.now()
     seconds_minutes = []
     for number in last_message.split():
@@ -188,7 +202,7 @@ async def getWorkTime(last_message):
         logger.info(f"Work message in 0 hours {seconds_minutes[0]} minutes and {seconds_minutes[1]} seconds({time_predict.strftime('%H:%M:%S')})")
         return (current_time + timedelta(seconds = (0 * 3600 + seconds_minutes[0] * 60 + seconds_minutes[1]))).timestamp()
     except IndexError as error:
-        logger.error(f"Failed to check interval(Error:{error})", exc_info=True)
+        logger.error(f"Failed to check interval!")
         return None
 
 async def getHistoryChannel():
@@ -200,33 +214,73 @@ async def getHistoryChannel():
                 return None
 
 def getChannelID():
-    try:
-        target_channel_id = int(input(f"{getDatetime()} {Fore.BLUE}{Style.BRIGHT}Enter Channel ID: "))
-        config_save("Discord", "target_channel_id", str(target_channel_id))
-        return True
-    except ValueError:
-        logger.error("Enter only numbers!")
-        return False
+    temp_channel_id = False
+    while not temp_channel_id:
+        try:
+            target_channel_id = int(input(f"{getDatetime()} {Fore.BLUE}{Style.BRIGHT}Enter Channel ID: "))
+            config_save("Discord", "target_channel_id", str(target_channel_id))
+            temp_channel_id = True
+        except ValueError:
+            logger.error("Enter only numbers!")
+            temp_channel_id = False
+    restartBot()
         
 def getDiscordToken():
-    discord_token = input(f"{getDatetime()} {Fore.BLUE}{Style.BRIGHT}Enter Discord Token: ")
-    if not discord_token.strip():
-        logger.error("Discord Token is empty!")
-        return False
-    config_save("Discord", "discord_token", discord_token)
-    return True
+    temp_discord_token = False
+    while not temp_discord_token:
+        discord_token = input(f"{getDatetime()} {Fore.BLUE}{Style.BRIGHT}Enter Discord Token: ")
+        if not discord_token.strip():
+            logger.error("Discord Token is empty!")
+            temp_discord_token =  False
+        else:
+            config_save("Discord", "discord_token", discord_token)
+            temp_discord_token = True
+    restartBot()
+
+def getClearCommand():
+    def getOS():
+        if sys.platform.startswith(("darwin", "linux", "android", "ios", "cygwin")) or sys.platform.endswith("bsd"):
+            return "clear"
+        else:
+            return "cls"
+    try:
+        logger.info("Getting user OS...")
+        old_clear_command = config_parser.get("OS", "clear_command")
+        logger.info("Successfully got user OS")
+        current_os = getOS()
+        logger.info("Checking for OS changes...")
+        if old_clear_command != current_os:
+            os_base = platform.uname()
+            logger.info(f"New OS detected: {os_base.system}({os_base.node})")
+            config_save("OS", "clear_command", current_os)
+        else:
+            logger.info("Changes not detected")
+    except NoOptionError:
+        logger.error("Failed to get option 'OS'")
+        config_save("OS", "clear_command", getOS())
+    except NoSectionError:
+        logger.error("Failed to get section 'OS'")
+        checkSections([sections[2]])
+        getClearCommand()
 
 def startBot():
     createConfigFile()
+    getClearCommand()
     try:
         logging.info("Starting DiscordAutoSender...")
         client.run(config_parser.get("Discord","discord_token"))
+    except NoSectionError:
+        logger.error("Failed to get section 'Discord'")
+        checkSections([sections[1]])
+        startBot()
+    except NoOptionError:
+        logger.error("Failed to get option 'Discord Token'")
+        getDiscordToken()
     except discord.errors.LoginFailure:
         logger.error("Your Discord Token is unavailable, please enter new Discord Token")
-        while not getDiscordToken():
-            pass
+        getDiscordToken()
     except Exception as error:
-        logger.error(f"Error: {error}", exc_info=True)
+        logger.error(f"Unknown error: {error}", exc_info=True)
 
 
 if __name__ == "__main__":
