@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 letters = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
 
 getDatetime = lambda: f"{Fore.LIGHTBLACK_EX}[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]{Style.RESET_ALL}"
+getRandomCounter = lambda: randint(1, 3)
 
 sections = ["# DO NOT SHARE THIS FILE WITH ANYONE AS IT CONTAINS YOUR DISCORD TOKEN WHICH CAN BE USED TO LOG INTO YOUR ACCOUNT! #", "Discord", "OS"]
 
@@ -60,7 +61,7 @@ def createConfigFile():
         getChannelID()
     except FileExistsError:
         config_parser.read(config_path, encoding="utf-8")
-        logger.info(f"Config file exists. Loading({config_path})...")
+        logger.error(f"Config file exists. Loading({config_path})...")
 
 def config_save(section, target, text):
     with open(config_path, "w", encoding="utf-8") as config:
@@ -122,7 +123,7 @@ async def collects_commands():
     target_channel_id = config_parser.get("Discord","target_channel_id")
     try:
         channel = client.get_channel(int(target_channel_id))
-    except Exception as error:
+    except Exception:
         logger.error(f"Failed to get channel ID!")
         enterChannelID()
     if channel:
@@ -183,11 +184,13 @@ async def getCollectTime(last_message):
         text1 = float(last_message.split("<t:")[1].split(":")[0])
         total_seconds = text1 - current_time.timestamp() + 3
         totals = datetime(1, 1, 1) + timedelta(seconds=(total_seconds))
+        timepredict = current_time + timedelta(seconds=(total_seconds))
+        logger.info(f"Collect message in {totals.hour} hours {totals.minute} minutes and {totals.second} seconds({timepredict.strftime('%H:%M:%S')})")
+        return text1 + getRandomCounter()
     except:
+        logger.error(f"Failed to check interval!")
         return None
-    timepredict = current_time + timedelta(seconds=(total_seconds))
-    logger.info(f"Collect message in {totals.hour} hours {totals.minute} minutes and {totals.second} seconds({timepredict.strftime('%H:%M:%S')})")
-    return text1 + 3
+
 
 async def getWorkTime(last_message):
     if not last_message:
@@ -200,8 +203,8 @@ async def getWorkTime(last_message):
     try:
         time_predict = current_time + timedelta(minutes=seconds_minutes[0],seconds=seconds_minutes[1])
         logger.info(f"Work message in 0 hours {seconds_minutes[0]} minutes and {seconds_minutes[1]} seconds({time_predict.strftime('%H:%M:%S')})")
-        return (current_time + timedelta(seconds = (0 * 3600 + seconds_minutes[0] * 60 + seconds_minutes[1]))).timestamp()
-    except IndexError as error:
+        return time_predict.timestamp() + getRandomCounter()
+    except IndexError:
         logger.error(f"Failed to check interval!")
         return None
 
