@@ -10,7 +10,6 @@
 </h2>
 <h1>⬇️ Installation</h1>
 <h2>🪟 Windows</h2>
-
 <h3><ol>
   <li>Install python(<a href="https://www.python.org/ftp/python/3.13.11/python-3.13.11-amd64.exe">3.13.11 recomended</a>)</li>
   <ul><li>When installing, check the box next to `Add python.exe to PATH` on the first installation screen</li></ul>
@@ -24,6 +23,16 @@
   <li>Start DiscordAutoSender - 'python main.py'</li>
   <ul><li>If You want to open with no CMD - skip 6 and 7 points</li></ul>
 </ol></h3>
+
+<h1>🛠️ How to get application</h1>
+<h2><ol>
+  <li>Open folder with Project in CMD(Terminal, etc.)</li>
+  <li>Start virtual environments - 'venv\Scripts\activate.bat'</li>
+  <li>Enter command to Terminal - pyinstaller --noconfirm --onefile --console --icon "assets/icons/icon.ico" --name "DiscordAutoSender"  "main.py"</li>
+  <li>Wait for completion PyInstaller. This may take a minute</li>
+  <li>Open fodler 'dist'</li>
+  <li>Run DiscordAutoSender.exe to start the bot</li>
+</ol></h2>
 
 <h1>❓ FAQ (Frequently Asked Questions)</h1>
 <h2>
