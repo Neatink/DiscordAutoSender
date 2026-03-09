@@ -19,6 +19,7 @@ letters = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','
 
 getDatetime = lambda: f"{Fore.LIGHTBLACK_EX}[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]{Style.RESET_ALL}"
 getRandomCounter = lambda: randint(1, 3)
+clearConsole = lambda command : os.system(command)
 
 sections = ["# DO NOT SHARE THIS FILE WITH ANYONE AS IT CONTAINS YOUR DISCORD TOKEN WHICH CAN BE USED TO LOG INTO YOUR ACCOUNT! #", "Discord", "OS"]
 
@@ -69,20 +70,24 @@ def config_save(section, target, text):
         config_parser.write(config)
     logger.info(f"Successfully saved '{target}' in '{section}' section")
 
+async def getInfoUser():
+    logger.info(f"Username: {client.user.name}")
+    logger.info(f"User ID: {client.user.id}")
+
 async def getCurrentBalance():
     textbal = '-' * 35
     try:
         logger.info("Getting Channel ID...")
         channel = client.get_channel(int(config_parser.get("Discord","target_channel_id")))
         logger.info("Successfully got Channel ID")
+        clearConsole(getClearCommand())
+        await getInfoUser()
         await channel.send("+bal")
         logger.info("'+bal' send")
     except (ValueError, AttributeError):
-        logger.error("Your Channel ID is unavailable, please enter new Channel ID")
-        getChannelID()
+        getChannelID("Your Channel ID is unavailable, please enter new Channel ID")
     except NoOptionError:
-        logger.error("Failed to get option 'Channel ID'")
-        getChannelID()
+        getChannelID("Failed to get option 'Channel ID'")
         
         
     await asyncio.sleep(1)
@@ -110,8 +115,7 @@ async def antiSpamWithLetter(channel):
 
 @client.event
 async def on_ready():
-    logger.info(f"Username: {client.user.name}")
-    logger.info(f"User ID: {client.user.id}")
+    logger.info("Successfully started DiscordAutoSender")
     await getCurrentBalance()
     if not collects_commands.is_running():
         collects_commands.start()  
@@ -216,7 +220,10 @@ async def getHistoryChannel():
             else:
                 return None
 
-def getChannelID():
+def getChannelID(error = None):
+    clearConsole(getClearCommand())
+    if error:
+        logger.error(error)
     temp_channel_id = False
     while not temp_channel_id:
         try:
@@ -228,7 +235,10 @@ def getChannelID():
             temp_channel_id = False
     restartBot()
         
-def getDiscordToken():
+def getDiscordToken(error = None):
+    clearConsole(getClearCommand())
+    if error:
+        logger.error(error)
     temp_discord_token = False
     while not temp_discord_token:
         discord_token = input(f"{getDatetime()} {Fore.BLUE}{Style.BRIGHT}Enter Discord Token: ")
@@ -246,11 +256,11 @@ def getClearCommand():
             return "clear"
         else:
             return "cls"
+    current_os = getOS()
     try:
         logger.info("Getting user OS...")
         old_clear_command = config_parser.get("OS", "clear_command")
         logger.info("Successfully got user OS")
-        current_os = getOS()
         logger.info("Checking for OS changes...")
         if old_clear_command != current_os:
             os_base = platform.uname()
@@ -265,6 +275,7 @@ def getClearCommand():
         logger.error("Failed to get section 'OS'")
         checkSections([sections[2]])
         getClearCommand()
+    return current_os
 
 def startBot():
     createConfigFile()
@@ -277,11 +288,9 @@ def startBot():
         checkSections([sections[1]])
         startBot()
     except NoOptionError:
-        logger.error("Failed to get option 'Discord Token'")
-        getDiscordToken()
+        getDiscordToken("Failed to get option 'Discord Token'")
     except discord.errors.LoginFailure:
-        logger.error("Your Discord Token is unavailable, please enter new Discord Token")
-        getDiscordToken()
+        getDiscordToken("Your Discord Token is unavailable, please enter new Discord Token")
     except Exception as error:
         logger.error(f"Unknown error: {error}", exc_info=True)
 
