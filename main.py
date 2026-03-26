@@ -27,14 +27,12 @@ init(autoreset=True)
 client = discord.Client()
 config_parser = ConfigParser()
 
-config_folder_path = Path('configs')
-config_path = f'{config_folder_path}/main.cfg'
+config_folder_path = Path("configs")
+config_path = config_folder_path / "main.cfg"
+config_folder_path.mkdir(parents=True, exist_ok=True)
 
 collect_timer = datetime.now().timestamp()
 work_timer = datetime.now().timestamp()
-
-if not config_folder_path.exists():
-    config_folder_path.mkdir(parents=True)
 
 def restartBot():
     logger.info("Restarting bot...")
@@ -83,7 +81,7 @@ async def getCurrentBalance():
         clearConsole(getClearCommand())
         await getInfoUser()
         await channel.send("+bal")
-        logger.info("'+bal' send")
+        logger.debug("'+bal' send")
     except (ValueError, AttributeError):
         getChannelID("Your Channel ID is unavailable, please enter new Channel ID")
     except NoOptionError:
