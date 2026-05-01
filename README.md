@@ -26,11 +26,11 @@
 
 <h1>🛠️ How to get application</h1>
 <h2><ol>
-  <li>Open folder with Project in CMD(Terminal, etc.)</li>
-  <li>Start virtual environments - 'venv\Scripts\activate.bat'</li>
-  <li>Enter command to Terminal - pyinstaller --noconfirm --onefile --console --icon "assets/icons/icon.ico" --name "DiscordAutoSender"  "main.py"</li>
+  <li>Stop application(if it running) - 'CTRL + C'</li>
+  <li>Run script to make .exe - python pytoexe.py</li>
+  <li>Press any key to start creating application</li>
   <li>Wait for completion PyInstaller. This may take a minute</li>
-  <li>Open fodler 'dist'</li>
+  <li>Open folder 'dist' in folder with project(main.py)</li>
   <li>Run DiscordAutoSender.exe to start the bot</li>
 </ol></h2>
 
