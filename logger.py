@@ -6,7 +6,7 @@ import logging
 import sys
 
 def setup_logger(name_file):
-    logger_folder_path = Path(__file__).parent.resolve() / "logger"
+    logger_folder_path = Path("logger")
     logger_folder_path.mkdir(parents=True, exist_ok=True)
     color_formater = ColoredFormatter(
         "%(light_black)s[%(asctime)s] %(log_color)s%(message)s",
