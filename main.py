@@ -5,7 +5,6 @@ from random import shuffle, randint
 from logger import setup_logger
 from discord.ext import tasks
 from pathlib import Path
-import platform
 import logging
 import discord
 import asyncio
@@ -27,9 +26,9 @@ init(autoreset=True)
 client = discord.Client()
 config_parser = ConfigParser()
 
-config_folder_path = Path("configs")
-config_path = config_folder_path / "main.cfg"
+config_folder_path = Path(__file__).parent.resolve() / "configs"
 config_folder_path.mkdir(parents=True, exist_ok=True)
+config_path = config_folder_path / "main.cfg"
 
 collect_timer = datetime.now().timestamp()
 work_timer = datetime.now().timestamp()
