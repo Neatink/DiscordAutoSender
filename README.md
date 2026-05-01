@@ -27,11 +27,11 @@
 <h1>🛠️ How to get application</h1>
 <h2><ol>
   <li>Stop application(if it running) - 'CTRL + C'</li>
-  <li>Run script to make .exe - python pytoexe.py</li>
+  <li>Run script to make .exe - 'python pytoexe.py'</li>
   <li>Press any key to start creating application</li>
   <li>Wait for completion PyInstaller. This may take a minute</li>
   <li>Open folder 'dist' in folder with project(main.py)</li>
-  <li>Run DiscordAutoSender.exe to start the bot</li>
+  <li>Run 'DiscordAutoSender.exe' to start the bot</li>
 </ol></h2>
 
 <h1>❓ FAQ (Frequently Asked Questions)</h1>
