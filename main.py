@@ -26,7 +26,7 @@ init(autoreset=True)
 client = discord.Client()
 config_parser = ConfigParser()
 
-config_folder_path = Path(__file__).parent.resolve() / "configs"
+config_folder_path = Path("configs")
 config_folder_path.mkdir(parents=True, exist_ok=True)
 config_path = config_folder_path / "main.cfg"
 
