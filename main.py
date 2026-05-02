@@ -286,7 +286,7 @@ def startBot():
         startBot()
     except NoOptionError:
         getDiscordToken("Failed to get option 'Discord Token'")
-    except discord.errors.LoginFailure:
+    except (discord.errors.LoginFailure,UnicodeEncodeError):
         getDiscordToken("Your Discord Token is unavailable, please enter new Discord Token")
     except Exception as error:
         logger.error(f"Unknown error: {error}", exc_info=True)

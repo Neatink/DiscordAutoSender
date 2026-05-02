@@ -5,6 +5,8 @@ import colorlog
 import logging
 import sys
 
+custom_namer = lambda name: name.replace(".log", "") + ".log"
+
 def setup_logger(name_file):
     logger_folder_path = Path("logger")
     logger_folder_path.mkdir(parents=True, exist_ok=True)
@@ -24,6 +26,7 @@ def setup_logger(name_file):
     logger_format = logging.Formatter("%(name)s %(asctime)s %(levelname)s %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
 
     logger_file = logging.handlers.TimedRotatingFileHandler(filename=f"{logger_folder_path / name_file}.log", when='midnight', backupCount=7)
+    logger_file.namer = custom_namer
     logger_file.setFormatter(logger_format)
 
     logger.addHandler(logger_file)
