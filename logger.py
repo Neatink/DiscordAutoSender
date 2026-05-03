@@ -18,6 +18,7 @@ def setup_logger(name_file):
             "INFO" : "cyan",
             "WARNING": "yellow",
             "ERROR" : "red",
+            "CRITICAL": "bold_red"  
         },
     )
     

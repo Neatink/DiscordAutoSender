@@ -5,9 +5,11 @@ from random import shuffle, randint
 from logger import setup_logger
 from discord.ext import tasks
 from pathlib import Path
+import platform
 import logging
 import discord
 import asyncio
+import time
 import sys
 import os
 
@@ -33,9 +35,13 @@ config_path = config_folder_path / "main.cfg"
 collect_timer = datetime.now().timestamp()
 work_timer = datetime.now().timestamp()
 
-def restartBot():
-    logger.info("Restarting bot...")
-    os.execv(sys.executable, ['python'] + sys.argv)
+def restartBot(timing = 0):
+    if timing > 0: 
+        logger.info(f"Restarting bot in {timing} seconds...")
+    else:
+        logger.info(f"Restarting bot...")
+    time.sleep(timing)
+    os.execv(sys.executable, [sys.executable] + sys.argv)
 
 def checkSections(sections):
     added_new_sections = False
@@ -85,8 +91,6 @@ async def getCurrentBalance():
         getChannelID("Your Channel ID is unavailable, please enter new Channel ID")
     except NoOptionError:
         getChannelID("Failed to get option 'Channel ID'")
-        
-        
     await asyncio.sleep(1)
     
     channel_history = await getHistoryChannel()
@@ -124,9 +128,9 @@ async def collects_commands():
     target_channel_id = config_parser.get("Discord","target_channel_id")
     try:
         channel = client.get_channel(int(target_channel_id))
-    except Exception:
+    except:
         logger.error(f"Failed to get channel ID!")
-        enterChannelID()
+        getChannelID()
     if channel:
         try:
             current_date = datetime.now().timestamp()
@@ -164,7 +168,7 @@ async def collects_commands():
             collects_commands.change_interval(hours=0, minutes=0, seconds=10)
             return
     else:
-        enterChannelID()
+        getChannelID()
 
 async def getLastMessage():
     channel_history = await getHistoryChannel()
@@ -249,10 +253,10 @@ def getDiscordToken(error = None):
 
 def getClearCommand():
     def getOS():
-        if sys.platform.startswith(("darwin", "linux", "android", "ios", "cygwin")) or sys.platform.endswith("bsd"):
-            return "clear"
-        else:
+        if platform.system() == "Windows":
             return "cls"
+        else:
+            return "clear"
     current_os = getOS()
     try:
         logger.info("Getting user OS...")
@@ -271,25 +275,29 @@ def getClearCommand():
     except NoSectionError:
         logger.error("Failed to get section 'OS'")
         checkSections([sections[2]])
-        getClearCommand()
+    except PermissionError as error:
+        logger.error(f"Permission to file was denied!(error: {error})")
+        sys.exit()
     return current_os
 
 def startBot():
-    createConfigFile()
-    getClearCommand()
-    try:
-        logging.info("Starting DiscordAutoSender...")
-        client.run(config_parser.get("Discord","discord_token"))
-    except NoSectionError:
-        logger.error("Failed to get section 'Discord'")
-        checkSections([sections[1]])
-        startBot()
-    except NoOptionError:
-        getDiscordToken("Failed to get option 'Discord Token'")
-    except (discord.errors.LoginFailure,UnicodeEncodeError):
-        getDiscordToken("Your Discord Token is unavailable, please enter new Discord Token")
-    except Exception as error:
-        logger.error(f"Unknown error: {error}", exc_info=True)
+    while True:
+        createConfigFile()
+        getClearCommand()
+        try:
+            logging.info("Starting DiscordAutoSender...")
+            client.run(config_parser.get("Discord","discord_token"))
+        except NoSectionError:
+            logger.error("Failed to get section 'Discord'")
+            checkSections([sections[1]])
+        except NoOptionError:
+            getDiscordToken("Failed to get option 'Discord Token'")
+        except (discord.errors.LoginFailure,UnicodeEncodeError):
+            getDiscordToken("Your Discord Token is unavailable, please enter new Discord Token")
+        except Exception as error:
+            logger.error(f"Unknown error: {error}", exc_info=True)
+        logger.critical("Connection with bot was aborted")
+        restartBot(15)
 
 
 if __name__ == "__main__":
