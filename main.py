@@ -223,21 +223,21 @@ async def getHistoryChannel():
 
 def getChannelID(error = None):
     clearConsole(getClearCommand())
-    if error:
-        logger.error(error)
+    if error : logger.error(error)
     while True:
         try:
             target_channel_id = int(input(f"{getDatetime()} {Fore.BLUE}{Style.BRIGHT}Enter Channel ID: "))
         except ValueError:
             logger.error("Enter only numbers!")
+            continue
         except EOFError:
             logger.critical("Keyboard not found!")
-            try:
-                logger.info("Checking .env file to get Channel ID...")
-                target_channel_id = os.getenv("TARGET_CHANNEL_ID")
-            except:
-                logger.error("Failed to get Channel ID from .env file!")
-        if not target_channel_id.strip():
+            logger.info("Checking .env file to get Channel ID...")
+            target_channel_id = os.getenv("TARGET_CHANNEL_ID")
+            if not target_channel_id:
+                logger.critical("Failed to get Channel ID from .env file!")
+                sys.exit()
+        if not str(target_channel_id).strip():
             logger.error("Channel ID is empty!")
         else:
             logger.info("Successfully got Channel ID")
@@ -246,18 +246,17 @@ def getChannelID(error = None):
         
 def getDiscordToken(error = None):
     clearConsole(getClearCommand())
-    if error:
-        logger.error(error)
+    if error : logger.error(error)
     while True:
         try:
             discord_token = input(f"{getDatetime()} {Fore.BLUE}{Style.BRIGHT}Enter Discord Token: ")
         except EOFError:
             logger.critical("Keyboard not found!")
-            try:
-                logger.info("Checking .env file to get Discord Token...")
-                discord_token = os.getenv("DISCORD_TOKEN")
-            except:
-                logger.error("Failed to get Discord Token from .env file!")
+            logger.info("Checking .env file to get Discord Token...")
+            discord_token = os.getenv("DISCORD_TOKEN")
+            if not discord_token:
+                logger.critical("Failed to get Discord Token from .env file!(Empty)")
+                sys.exit()
         if not discord_token.strip():
             logger.error("Discord Token is empty!")
         else:
@@ -300,7 +299,6 @@ def startBot():
         getClearCommand()
         try:
             logging.info("Starting DiscordAutoSender...")
-            logging.info("Trying to get Discord Token from config file...")
             client.run(config_parser.get("Discord","discord_token"))
         except NoSectionError:
             logger.error("Failed to get section 'Discord'")
