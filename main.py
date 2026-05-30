@@ -145,7 +145,7 @@ async def collects_commands():
                 
                 await asyncio.sleep(2.5)
                 
-                collect_timer = await getCollectTime(await getLastMessage())
+                collect_timer = await getTime(await getLastMessage(), "Collect")
                 
                 if collect_timer is not None and collect_timer >= current_date:
                     break
@@ -162,7 +162,7 @@ async def collects_commands():
                 
                 await asyncio.sleep(2.5)
                 
-                work_timer = await getWorkTime(await getLastMessage())
+                work_timer = await getTime(await getLastMessage(), "Work")
                 
                 if work_timer is not None and work_timer >= current_date:
                     break
@@ -186,34 +186,17 @@ async def getLastMessage():
         channel_last_message = channel_history.content
         
     return channel_last_message
-
-async def getCollectTime(last_message):
+    
+async def getTime(last_message, text):
     current_time = datetime.now()
     try:
-        text1 = float(last_message.split("<t:")[1].split(":")[0])
-        total_seconds = text1 - current_time.timestamp() + 3
+        time = float(last_message.split("<t:")[1].split(":")[0])
+        total_seconds = time - current_time.timestamp() + 3
         totals = datetime(1, 1, 1) + timedelta(seconds=(total_seconds))
         timepredict = current_time + timedelta(seconds=(total_seconds))
-        logger.info(f"Collect message in {totals.hour} hours {totals.minute} minutes and {totals.second} seconds({timepredict.strftime('%H:%M:%S')})")
-        return text1 + getRandomCounter()
+        logger.info(f"{text} message in {totals.hour} hours {totals.minute} minutes and {totals.second} seconds({timepredict.strftime('%H:%M:%S')})")
+        return time + getRandomCounter()
     except:
-        logger.error(f"Failed to check interval!")
-        return None
-
-
-async def getWorkTime(last_message):
-    if not last_message:
-        return None
-    current_time = datetime.now()
-    seconds_minutes = []
-    for number in last_message.split():
-        if number.isdigit():
-            seconds_minutes.append(int(number))
-    try:
-        time_predict = current_time + timedelta(minutes=seconds_minutes[0],seconds=seconds_minutes[1])
-        logger.info(f"Work message in 0 hours {seconds_minutes[0]} minutes and {seconds_minutes[1]} seconds({time_predict.strftime('%H:%M:%S')})")
-        return time_predict.timestamp() + getRandomCounter()
-    except IndexError:
         logger.error(f"Failed to check interval!")
         return None
 
