@@ -110,7 +110,7 @@ async def antiSpamWithLetter(channel):
     random_letter = letters[randint(0,25)]
     temp_letter = await channel.send(random_letter)
     logger.debug(f"random letter('{random_letter}') send")
-    await asyncio.sleep(1)
+    await asyncio.sleep(1.5)
     await temp_letter.delete()
     logger.debug(f"random letter('{random_letter}') was deleted")
 
@@ -143,7 +143,7 @@ async def collects_commands():
                 
                 await asyncio.sleep(1.5)
                 
-                collect_timer = await getCollectTime(await getLastMessage())
+                collect_timer = await getTime(await getLastMessage(), "Collect")
                 
                 if collect_timer is not None and collect_timer >= current_date:
                     break
@@ -158,13 +158,13 @@ async def collects_commands():
                 
                 await asyncio.sleep(1.5)
                 
-                work_timer = await getWorkTime(await getLastMessage())
+                work_timer = await getTime(await getLastMessage(), "Work")
                 
                 if work_timer is not None and work_timer >= current_date:
                     break
         
         except Exception as error:
-            logger.error(f"Сant send a message!(Try again in 10 seconds...)(Error:{error})", exc_info=True)
+            logger.error(f"Сant send a message!(Trying again in 10 seconds...)(Error:{error})", exc_info=True)
             collects_commands.change_interval(hours=0, minutes=0, seconds=10)
             return
     else:
@@ -182,34 +182,17 @@ async def getLastMessage():
         channel_last_message = channel_history.content
         
     return channel_last_message
-
-async def getCollectTime(last_message):
+    
+async def getTime(last_message, text):
     current_time = datetime.now()
     try:
-        text1 = float(last_message.split("<t:")[1].split(":")[0])
-        total_seconds = text1 - current_time.timestamp() + 3
+        time = float(last_message.split("<t:")[1].split(":")[0])
+        total_seconds = time - current_time.timestamp() + 3
         totals = datetime(1, 1, 1) + timedelta(seconds=(total_seconds))
         timepredict = current_time + timedelta(seconds=(total_seconds))
-        logger.info(f"Collect message in {totals.hour} hours {totals.minute} minutes and {totals.second} seconds({timepredict.strftime('%H:%M:%S')})")
-        return text1 + getRandomCounter()
+        logger.info(f"{text} message in {totals.hour} hours {totals.minute} minutes and {totals.second} seconds({timepredict.strftime('%H:%M:%S')})")
+        return time + getRandomCounter()
     except:
-        logger.error(f"Failed to check interval!")
-        return None
-
-
-async def getWorkTime(last_message):
-    if not last_message:
-        return None
-    current_time = datetime.now()
-    seconds_minutes = []
-    for number in last_message.split():
-        if number.isdigit():
-            seconds_minutes.append(int(number))
-    try:
-        time_predict = current_time + timedelta(minutes=seconds_minutes[0],seconds=seconds_minutes[1])
-        logger.info(f"Work message in 0 hours {seconds_minutes[0]} minutes and {seconds_minutes[1]} seconds({time_predict.strftime('%H:%M:%S')})")
-        return time_predict.timestamp() + getRandomCounter()
-    except IndexError:
         logger.error(f"Failed to check interval!")
         return None
 
@@ -223,33 +206,46 @@ async def getHistoryChannel():
 
 def getChannelID(error = None):
     clearConsole(getClearCommand())
-    if error:
-        logger.error(error)
-    temp_channel_id = False
-    while not temp_channel_id:
+    if error : logger.error(error)
+    while True:
         try:
             target_channel_id = int(input(f"{getDatetime()} {Fore.BLUE}{Style.BRIGHT}Enter Channel ID: "))
-            config_save("Discord", "target_channel_id", str(target_channel_id))
-            temp_channel_id = True
         except ValueError:
             logger.error("Enter only numbers!")
-            temp_channel_id = False
-    restartBot()
+            continue
+        except EOFError:
+            logger.critical("Keyboard not found!")
+            logger.info("Checking .env file to get Channel ID...")
+            target_channel_id = os.getenv("TARGET_CHANNEL_ID")
+            if not target_channel_id:
+                logger.critical("Failed to get Channel ID from .env file!")
+                sys.exit()
+        if not str(target_channel_id).strip():
+            logger.error("Channel ID is empty!")
+        else:
+            logger.info("Successfully got Channel ID")
+            config_save("Discord", "target_channel_id", str(target_channel_id))
+            restartBot()
         
 def getDiscordToken(error = None):
     clearConsole(getClearCommand())
-    if error:
-        logger.error(error)
-    temp_discord_token = False
-    while not temp_discord_token:
-        discord_token = input(f"{getDatetime()} {Fore.BLUE}{Style.BRIGHT}Enter Discord Token: ")
+    if error : logger.error(error)
+    while True:
+        try:
+            discord_token = input(f"{getDatetime()} {Fore.BLUE}{Style.BRIGHT}Enter Discord Token: ")
+        except EOFError:
+            logger.critical("Keyboard not found!")
+            logger.info("Checking .env file to get Discord Token...")
+            discord_token = os.getenv("DISCORD_TOKEN")
+            if not discord_token:
+                logger.critical("Failed to get Discord Token from .env file!(Empty)")
+                sys.exit()
         if not discord_token.strip():
             logger.error("Discord Token is empty!")
-            temp_discord_token =  False
         else:
+            logger.info("Successfully got Discord Token")
             config_save("Discord", "discord_token", discord_token)
-            temp_discord_token = True
-    restartBot()
+            restartBot()
 
 def getClearCommand():
     def getOS():

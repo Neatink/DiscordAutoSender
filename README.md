@@ -1,6 +1,6 @@
 <h1 align="center">🤖 DiscordAutoSender 🤖</h1>
-<h2 align="center">Discord Auto Sender for collect rewards</h2>
-<h3 align="center">⚡For UnbelievaBoat</h3>
+<h2 align="center">⚡ Discord Auto Sender for collect rewards ⚡</h2>
+<h3 align="center">✨ For "UnbelievaBoat" ✨</h3>
 
 ![banner](/assets/banner.png)
 
