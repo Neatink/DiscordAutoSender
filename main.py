@@ -110,7 +110,7 @@ async def antiSpamWithLetter(channel):
     random_letter = letters[randint(0,25)]
     temp_letter = await channel.send(random_letter)
     logger.debug(f"random letter('{random_letter}') send")
-    await asyncio.sleep(1)
+    await asyncio.sleep(1.5)
     await temp_letter.delete()
     logger.debug(f"random letter('{random_letter}') was deleted")
 
@@ -136,31 +136,27 @@ async def collects_commands():
             current_date = datetime.now().timestamp()
 
             while not collect_timer or collect_timer < current_date:
-                await asyncio.sleep(2.5)
-                
                 await antiSpamWithLetter(channel)
                 
                 await channel.send('+collect')
                 logger.debug("'+collect' send")
                 
-                await asyncio.sleep(2.5)
+                await asyncio.sleep(1.5)
                 
                 collect_timer = await getTime(await getLastMessage(), "Collect")
                 
                 if collect_timer is not None and collect_timer >= current_date:
                     break
                 
-            await asyncio.sleep(2.5)
+            await asyncio.sleep(1.5)
 
             while not work_timer or work_timer < current_date:
-                await asyncio.sleep(2.5)
-                
                 await antiSpamWithLetter(channel)
 
                 await channel.send('+work')
                 logger.debug("'+work' send")
                 
-                await asyncio.sleep(2.5)
+                await asyncio.sleep(1.5)
                 
                 work_timer = await getTime(await getLastMessage(), "Work")
                 
