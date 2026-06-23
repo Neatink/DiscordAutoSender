@@ -1,7 +1,7 @@
 from configparser import ConfigParser, NoOptionError, NoSectionError
 from datetime import datetime,timedelta
 from colorama import Fore,init,Style
-from random import shuffle, randint
+from random import shuffle, uniform
 from logger import setup_logger
 from discord.ext import tasks
 from pathlib import Path
@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 letters = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
 
 getDatetime = lambda: f"{Fore.LIGHTBLACK_EX}[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]{Style.RESET_ALL}"
-getRandomCounter = lambda: randint(1, 3)
+getRandomCounter = lambda: uniform(15, 125)
 clearConsole = lambda command : os.system(command)
 
 sections = ["# DO NOT SHARE THIS FILE WITH ANYONE AS IT CONTAINS YOUR DISCORD TOKEN WHICH CAN BE USED TO LOG INTO YOUR ACCOUNT! #", "Discord", "OS"]
@@ -91,7 +91,7 @@ async def getCurrentBalance():
         getChannelID("Your Channel ID is unavailable, please enter new Channel ID")
     except NoOptionError:
         getChannelID("Failed to get option 'Channel ID'")
-    await asyncio.sleep(1)
+    await asyncio.sleep(uniform(2.5, 5.5))
     
     channel_history = await getHistoryChannel()
     
@@ -110,7 +110,7 @@ async def antiSpamWithLetter(channel):
     random_letter = letters[randint(0,25)]
     temp_letter = await channel.send(random_letter)
     logger.debug(f"random letter('{random_letter}') send")
-    await asyncio.sleep(1.5)
+    await asyncio.sleep(uniform(2, 4.5))
     await temp_letter.delete()
     logger.debug(f"random letter('{random_letter}') was deleted")
 
@@ -141,14 +141,14 @@ async def collects_commands():
                 await channel.send('+collect')
                 logger.debug("'+collect' send")
                 
-                await asyncio.sleep(1.5)
+                await asyncio.sleep(uniform(3, 6.5))
                 
                 collect_timer = await getTime(await getLastMessage(), "Collect")
                 
                 if collect_timer is not None and collect_timer >= current_date:
                     break
                 
-            await asyncio.sleep(1.5)
+            await asyncio.sleep(uniform(3, 6.5))
 
             while not work_timer or work_timer < current_date:
                 await antiSpamWithLetter(channel)
@@ -156,7 +156,7 @@ async def collects_commands():
                 await channel.send('+work')
                 logger.debug("'+work' send")
                 
-                await asyncio.sleep(1.5)
+                await asyncio.sleep(uniform(3, 6.5))
                 
                 work_timer = await getTime(await getLastMessage(), "Work")
                 
