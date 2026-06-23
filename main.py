@@ -1,7 +1,7 @@
 from configparser import ConfigParser, NoOptionError, NoSectionError
 from datetime import datetime,timedelta
 from colorama import Fore,init,Style
-from random import shuffle, uniform
+from random import shuffle,uniform,randint
 from logger import setup_logger
 from discord.ext import tasks
 from pathlib import Path
