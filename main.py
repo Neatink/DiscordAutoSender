@@ -4,6 +4,7 @@ from colorama import Fore,init,Style
 from random import shuffle,uniform,randint
 from logger import setup_logger
 from discord.ext import tasks
+from bypass_bot import alive
 from pathlib import Path
 import platform
 import logging
@@ -277,6 +278,23 @@ def getClearCommand():
     return current_os
 
 def startBot():
+    try:
+        if config_parser.get("Bypass", "Render").lower() == "y":
+            alive()
+    except EOFError:
+        logger.critical("Keyboard not found!")
+        logger.info("Checking .env file to get Bypass(Render) status...")
+        bypass_render_status = os.getenv("BYPASS_RENDER")
+        if not bypass_render_status:
+            logger.critical("Failed to get Bypass(Render) status from .env file!")
+    except Exception as error:
+        logger.error(f"Unknown error: {error}", exc_info=True)
+    except NoSectionError:
+        #add check for sections
+        pass
+    except NoOptionError:
+        #add check for option
+        pass
     while True:
         createConfigFile()
         getClearCommand()
