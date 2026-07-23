@@ -281,7 +281,7 @@ def startBot():
     try:
         if config_parser.get("Bypass", "Render").lower() == "y":
             alive()
-    except EOFError:
+    except (EOFError, NoOptionError, NoSectionError):
         logger.critical("Keyboard not found!")
         logger.info("Checking .env file to get Bypass(Render) status...")
         bypass_render_status = os.getenv("BYPASS_RENDER")
