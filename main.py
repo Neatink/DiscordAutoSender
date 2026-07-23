@@ -287,6 +287,8 @@ def startBot():
         bypass_render_status = os.getenv("BYPASS_RENDER")
         if not bypass_render_status:
             logger.critical("Failed to get Bypass(Render) status from .env file!")
+        elif bypass_render_status.lower() == "y":
+            alive()
     except Exception as error:
         logger.error(f"Unknown error: {error}", exc_info=True)
     except NoSectionError:
